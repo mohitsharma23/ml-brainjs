@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Color Picker</title>
+
+    <style>
+      body {
+        font-family: helvetica neue;
+      }
+      #example {
+        padding: 100px;
+        background: #ff0000;
+        color: white;
+        font-size: 36px;
+      }
+    </style>
+  </head>
+  <body>
+    <input type="color" value="#ff0000" />
+    <div id="example">Example Text</div>
+
+    <script src="https://cdn.rawgit.com/BrainJS/brain.js/master/browser.js"></script>
+
+    <script>
+      const input = document.querySelector("input");
+      const example = document.querySelector("#example");
+
+      input.addEventListener("change", e => {
+        const rgb = getRgb(e.target.value);
+        const network = new brain.NeuralNetwork();
+
+        network.train([
+          { input: { r: 1, g: 0.376, b: 0.376 }, output: { dark: 1 } },
+          { input: { r: 0.243, g: 0.509, b: 0.282 }, output: { light: 1 } },
+          { input: { r: 1, g: 0.188, b: 0.878 }, output: { dark: 1 } },
+          { input: { r: 0.204, g: 0.176, b: 1 }, output: { light: 1 } },
+          { input: { r: 0.976, g: 1, b: 0.349 }, output: { dark: 1 } },
+          { input: { r: 1, g: 1, b: 1 }, output: { light: 1 } },
+          { input: { r: 0.996, g: 0.976, b: 0.58 }, output: { light: 1 } }
+        ]);
+
+        const result = brain.likely(rgb, network);
+        console.log(result);
+        example.style.background = e.target.value;
+        example.style.color = result === "dark" ? "white" : "black";
+      });
+
+      function getRgb(hex) {
+        var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+        hex = hex.replace(shorthandRegex, function(m, r, g, b) {
+          return r + r + g + g + b + b;
+        });
+
+        var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result
+          ? {
+              r: Math.round(parseInt(result[1], 16) / 2.55) / 100,
+              g: Math.round(parseInt(result[2], 16) / 2.55) / 100,
+              b: Math.round(parseInt(result[3], 16) / 2.55) / 100
+            }
+          : null;
+      }
+    </script>
+  </body>
+</html>
